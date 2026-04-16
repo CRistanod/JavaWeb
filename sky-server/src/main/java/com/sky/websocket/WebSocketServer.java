@@ -36,7 +36,7 @@ public class WebSocketServer {
      * @param message 客户端发送过来的消息
      */
     @OnMessage
-    public void onMessage(String message, @PathParam("sid") String sid) {
+    public void onMessage( String message, @PathParam("sid") String sid) {
         System.out.println("收到来自客户端：" + sid + "的信息:" + message);
     }
 

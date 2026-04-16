@@ -4,7 +4,10 @@ import com.github.pagehelper.Page;
 import com.sky.dto.GoodsSalesDTO;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.entity.Orders;
+import com.sky.vo.OpsCategorySalesItemVO;
+import com.sky.vo.OpsDishSalesItemVO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -82,5 +85,20 @@ public interface OrderMapper {
      * @param end
      * @return
      */
-    List<GoodsSalesDTO> getSalesTop10(LocalDateTime begin,LocalDateTime end);
+    List<GoodsSalesDTO> getSalesTop10(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end);
+
+    /**
+     * 查询指定时间区间内的商品销售排行
+     */
+    List<OpsDishSalesItemVO> getDishSalesRanking(@Param("begin") LocalDateTime begin,
+                                                 @Param("end") LocalDateTime end,
+                                                 @Param("orderByClause") String orderByClause,
+                                                 @Param("sort") String sort,
+                                                 @Param("limit") Integer limit);
+
+    /**
+     * 查询指定时间区间内的分类销售汇总
+     */
+    List<OpsCategorySalesItemVO> getCategorySalesSummary(@Param("begin") LocalDateTime begin,
+                                                         @Param("end") LocalDateTime end);
 }

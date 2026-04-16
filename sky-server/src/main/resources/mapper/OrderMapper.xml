@@ -95,6 +95,9 @@
             <if test="status != null">
                 and status = #{status}
             </if>
+            <if test="payStatus != null">
+                and pay_status = #{payStatus}
+            </if>
         </where>
     </select>
     <select id="getSalesTop10" resultType="com.sky.dto.GoodsSalesDTO">
@@ -110,5 +113,45 @@
         group by od.name
         order by number desc
         limit 0,10
+    </select>
+
+    <select id="getDishSalesRanking" resultType="com.sky.vo.OpsDishSalesItemVO">
+        select case when od.dish_id is not null then 'dish' else 'setmeal' end as goodsType,
+               coalesce(od.dish_id, od.setmeal_id) as itemId,
+               od.name as name,
+               c.name as categoryName,
+               sum(od.number) as salesVolume,
+               sum(od.amount * od.number) as revenue
+        from order_detail od
+                 inner join orders o on od.order_id = o.id
+                 left join dish d on od.dish_id = d.id
+                 left join setmeal s on od.setmeal_id = s.id
+                 left join category c on c.id = coalesce(d.category_id, s.category_id)
+        where o.status = 5
+          and o.order_time &gt; #{begin}
+          and o.order_time &lt; #{end}
+        group by case when od.dish_id is not null then 'dish' else 'setmeal' end,
+                 coalesce(od.dish_id, od.setmeal_id),
+                 od.name,
+                 c.name
+        order by ${orderByClause} ${sort}
+        limit #{limit}
+    </select>
+
+    <select id="getCategorySalesSummary" resultType="com.sky.vo.OpsCategorySalesItemVO">
+        select c.id as categoryId,
+               c.name as categoryName,
+               sum(od.number) as salesVolume,
+               sum(od.amount * od.number) as revenue
+        from order_detail od
+                 inner join orders o on od.order_id = o.id
+                 left join dish d on od.dish_id = d.id
+                 left join setmeal s on od.setmeal_id = s.id
+                 left join category c on c.id = coalesce(d.category_id, s.category_id)
+        where o.status = 5
+          and o.order_time &gt; #{begin}
+          and o.order_time &lt; #{end}
+        group by c.id, c.name
+        order by revenue desc
     </select>
 </mapper>

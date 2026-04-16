@@ -91,6 +91,27 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         return docket;
     }
 
+    @Bean
+    public Docket docket3(){
+        log.info("准备生成接口文档...");
+        ApiInfo apiInfo = new ApiInfoBuilder()
+                .title("苍穹外卖Agent内部接口文档")
+                .version("2.0")
+                .description("供 Python Agent 调用的内部运营分析接口文档")
+                .build();
+
+        Docket docket = new Docket(DocumentationType.SWAGGER_2)
+                .groupName("Agent内部接口")
+                .apiInfo(apiInfo)
+                .select()
+                //指定生成接口需要扫描的包
+                .apis(RequestHandlerSelectors.basePackage("com.sky.controller.internal"))
+                .paths(PathSelectors.any())
+                .build();
+
+        return docket;
+    }
+
     /**
      * 设置静态资源映射，主要是访问接口文档（html、js、css）
      * @param registry
