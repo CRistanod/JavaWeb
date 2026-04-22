@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sky.mapper.FlashSaleOrderMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into flash_sale_order
+        (activity_id, user_id, order_id, request_id, status, fail_reason, create_time, update_time)
+        values
+        (#{activityId}, #{userId}, #{orderId}, #{requestId}, #{status}, #{failReason}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="update">
+        update flash_sale_order
+        <set>
+            <if test="orderId != null">order_id = #{orderId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="failReason != null">fail_reason = #{failReason},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="countActiveUserPurchases" resultType="java.util.HashMap">
+        select user_id as userId, count(1) as purchaseCount
+        from flash_sale_order
+        where activity_id = #{activityId}
+          and status in (1, 2)
+        group by user_id
+    </select>
+</mapper>

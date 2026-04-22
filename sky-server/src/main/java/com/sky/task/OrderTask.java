@@ -2,6 +2,7 @@ package com.sky.task;
 
 import com.sky.entity.Orders;
 import com.sky.mapper.OrderMapper;
+import com.sky.service.FlashSaleOrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,6 +19,8 @@ public class OrderTask {
 
     @Autowired
     private OrderMapper orderMapper;
+    @Autowired
+    private FlashSaleOrderService flashSaleOrderService;
 
     /**
      * 处理超时订单的方法
@@ -37,6 +40,7 @@ public class OrderTask {
                 orders.setCancelReason("订单超时，自动取消");
                 orders.setCancelTime(LocalDateTime.now());
                 orderMapper.update(orders);
+                flashSaleOrderService.handleOrderCancellation(orders.getId(), "订单超时，自动取消");
             }
         }
     }

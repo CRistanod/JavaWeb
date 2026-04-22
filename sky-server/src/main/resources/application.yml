@@ -17,6 +17,14 @@ spring:
     port: ${sky.redis.port}
     password: ${sky.redis.password}
     database: ${sky.redis.database}
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
+    listener:
+      simple:
+        default-requeue-rejected: false
 
 mybatis:
   #mapper配置文件
@@ -35,6 +43,8 @@ logging:
         controller: info
 
 sky:
+  flash-sale:
+    async-enabled: false
   jwt:
     # 设置jwt签名加密时使用的秘钥
     admin-secret-key: itcast

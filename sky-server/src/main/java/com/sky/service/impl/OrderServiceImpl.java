@@ -15,6 +15,7 @@ import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.*;
 import com.sky.result.PageResult;
 import com.sky.service.OrderService;
+import com.sky.service.FlashSaleOrderService;
 import com.sky.utils.HttpClientUtil;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
@@ -56,6 +57,8 @@ public class OrderServiceImpl implements OrderService {
     private WeChatPayUtil weChatPayUtil;
     @Autowired
     private WebSocketServer webSocketServer;
+    @Autowired
+    private FlashSaleOrderService flashSaleOrderService;
 
     /**
      * 用户下单
@@ -231,11 +234,14 @@ public class OrderServiceImpl implements OrderService {
      * @param outTradeNo
      */
     public void paySuccess(String outTradeNo) {
-        // 当前登录用户id
-        Long userId = BaseContext.getCurrentId();
+        Orders ordersDB = orderMapper.getByNumber(outTradeNo);
+        if (ordersDB == null) {
+            throw new OrderBusinessException("订单不存在");
+        }
 
-        // 根据订单号查询当前用户的订单
-        Orders ordersDB = orderMapper.getByNumberAndUserId(outTradeNo, userId);
+        if (Orders.PAID.equals(ordersDB.getPayStatus())) {
+            return;
+        }
 
         // 根据订单id更新订单的状态、支付方式、支付状态、结账时间
         Orders orders = Orders.builder()
@@ -246,6 +252,7 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         orderMapper.update(orders);
+        flashSaleOrderService.markPaidByOrderId(ordersDB.getId());
 
         //通过websocket向客户端浏览器推送消息 type orderId content
         Map map = new HashMap();
@@ -357,6 +364,7 @@ public class OrderServiceImpl implements OrderService {
         orders.setCancelReason("用户取消");
         orders.setCancelTime(LocalDateTime.now());
         orderMapper.update(orders);
+        flashSaleOrderService.handleOrderCancellation(ordersDB.getId(), "用户取消");
     }
 
     /**
@@ -511,6 +519,7 @@ public class OrderServiceImpl implements OrderService {
         orders.setCancelTime(LocalDateTime.now());
 
         orderMapper.update(orders);
+        flashSaleOrderService.handleOrderCancellation(ordersDB.getId(), ordersRejectionDTO.getRejectionReason());
     }
 
     /**
@@ -541,6 +550,7 @@ public class OrderServiceImpl implements OrderService {
         orders.setCancelReason(ordersCancelDTO.getCancelReason());
         orders.setCancelTime(LocalDateTime.now());
         orderMapper.update(orders);
+        flashSaleOrderService.handleOrderCancellation(ordersDB.getId(), ordersCancelDTO.getCancelReason());
     }
 
     /**

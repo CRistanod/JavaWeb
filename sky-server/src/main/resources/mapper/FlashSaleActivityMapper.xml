@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sky.mapper.FlashSaleActivityMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into flash_sale_activity
+        (activity_name, dish_id, sale_price, stock, available_stock, limit_per_user, start_time, end_time, status,
+         create_time, update_time, create_user, update_user)
+        values
+        (#{activityName}, #{dishId}, #{salePrice}, #{stock}, #{availableStock}, #{limitPerUser}, #{startTime},
+         #{endTime}, #{status}, #{createTime}, #{updateTime}, #{createUser}, #{updateUser})
+    </insert>
+
+    <update id="update">
+        update flash_sale_activity
+        <set>
+            <if test="activityName != null">activity_name = #{activityName},</if>
+            <if test="dishId != null">dish_id = #{dishId},</if>
+            <if test="salePrice != null">sale_price = #{salePrice},</if>
+            <if test="stock != null">stock = #{stock},</if>
+            <if test="availableStock != null">available_stock = #{availableStock},</if>
+            <if test="limitPerUser != null">limit_per_user = #{limitPerUser},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="updateUser != null">update_user = #{updateUser},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="pageQuery" resultType="com.sky.vo.FlashSaleActivityVO">
+        select f.id,
+               f.activity_name as activityName,
+               f.dish_id as dishId,
+               d.name as dishName,
+               d.image as dishImage,
+               d.price as originalPrice,
+               f.sale_price as salePrice,
+               f.stock as stock,
+               f.available_stock as availableStock,
+               f.limit_per_user as limitPerUser,
+               f.start_time as startTime,
+               f.end_time as endTime,
+               f.status as status
+        from flash_sale_activity f
+                 inner join dish d on f.dish_id = d.id
+        <where>
+            <if test="activityName != null and activityName != ''">
+                and f.activity_name like concat('%', #{activityName}, '%')
+            </if>
+            <if test="dishName != null and dishName != ''">
+                and d.name like concat('%', #{dishName}, '%')
+            </if>
+            <if test="status != null">
+                and f.status = #{status}
+            </if>
+        </where>
+        order by f.create_time desc
+    </select>
+
+    <select id="getDetailVOById" resultType="com.sky.vo.FlashSaleActivityVO">
+        select f.id,
+               f.activity_name as activityName,
+               f.dish_id as dishId,
+               d.name as dishName,
+               d.image as dishImage,
+               d.price as originalPrice,
+               f.sale_price as salePrice,
+               f.stock as stock,
+               f.available_stock as availableStock,
+               f.limit_per_user as limitPerUser,
+               f.start_time as startTime,
+               f.end_time as endTime,
+               f.status as status
+        from flash_sale_activity f
+                 inner join dish d on f.dish_id = d.id
+        where f.id = #{id}
+    </select>
+
+    <select id="listCurrentActivities" resultType="com.sky.vo.FlashSaleActivityVO">
+        select f.id,
+               f.activity_name as activityName,
+               f.dish_id as dishId,
+               d.name as dishName,
+               d.image as dishImage,
+               d.price as originalPrice,
+               f.sale_price as salePrice,
+               f.stock as stock,
+               f.available_stock as availableStock,
+               f.limit_per_user as limitPerUser,
+               f.start_time as startTime,
+               f.end_time as endTime,
+               f.status as status
+        from flash_sale_activity f
+                 inner join dish d on f.dish_id = d.id
+        where f.status = 1
+          and d.status = 1
+          and f.start_time &lt;= #{now}
+          and f.end_time &gt;= #{now}
+        order by f.start_time asc, f.id desc
+    </select>
+
+    <update id="decrementAvailableStock">
+        update flash_sale_activity
+        set available_stock = available_stock - #{amount}
+        where id = #{id}
+          and available_stock &gt;= #{amount}
+    </update>
+
+    <update id="incrementAvailableStock">
+        update flash_sale_activity
+        set available_stock = available_stock + #{amount}
+        where id = #{id}
+    </update>
+</mapper>
